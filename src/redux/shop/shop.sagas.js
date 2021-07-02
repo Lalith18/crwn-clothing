@@ -1,30 +1,31 @@
-import { takeEvery, call, put } from "@redux-saga/core/effects";
-import {firestore, convertCollectionSnapshotToMap} from '../../firebase/firebase.utils'
-import { fetchCollectionsSuccess, fetchCollectionsFailure} from './shop.actions'
+import { takeLatest, call, put } from 'redux-saga/effects';
 
-import ShopActionTypes from "./shop.types";
+import {
+  firestore,
+  convertCollectionsSnapshotToMap
+} from '../../firebase/firebase.utils';
 
-export function* fetchCollectionsAsync() {
-    yield console.log('I am fired');
+import {
+  fetchCollectionsSuccess,
+  fetchCollectionsFailure
+} from './shop.actions';
 
-    try {
-        const collectionRef = firestore.collection('collections');
-        const snapshot = yield collectionRef.get();
-        const collectionsMap = yield call(convertCollectionSnapshotToMap, snapshot);
-        yield put(fetchCollectionsSuccess(collectionsMap))
-    } catch (error) {
-        yield put(fetchCollectionsFailure(error.message))
-    }
-        
+import ShopActionTypes from './shop.types';
 
-
-        // dispatch(fetchCollectionsStart())
-        // collectionRef.get().then(snapshot => {
-        //     const collectionsMap = convertCollectionSnapshotToMap(snapshot)
-        //     dispatch(fetchCollectionsSuccess(collectionsMap))
-        // }).catch(error => dispatch(fetchCollectionsFailure(error.message)))
+export function* fetchCollections() {
+  try {
+    const collectionRef = firestore.collection('collections');
+    const snapshot = yield collectionRef.get();
+    const collectionsMap = yield call(
+      convertCollectionsSnapshotToMap,
+      snapshot
+    );
+    yield put(fetchCollectionsSuccess(collectionsMap));
+  } catch (error) {
+    yield put(fetchCollectionsFailure(error.message));
+  }
 }
 
-export function* fetchCollectionsStart() {
-    yield takeEvery(ShopActionTypes.FETCH_COLLECTIONS_START, fetchCollectionsAsync)
+export function* onFetchCollectionsStart() {
+  yield takeLatest(ShopActionTypes.FETCH_COLLECTIONS_START, fetchCollections);
 }
